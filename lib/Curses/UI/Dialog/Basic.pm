@@ -27,7 +27,7 @@ use vars qw(
     Curses::UI::Common
 );
 
-$VERSION = '1.10';
+$VERSION = '1.11';
 
 sub new ()
 {
@@ -40,7 +40,7 @@ sub new ()
         -border       => 1,
         -message      => '',        # The message to show
         -ipad         => 1, 
-	-fg           => -1,
+	      -fg           => -1,
         -bg           => -1,
 
         %userargs,
@@ -69,7 +69,7 @@ sub new ()
         -fg          => $this->{-fg},
         -bbg         => $this->{-bg},
         -bfg         => $this->{-fg},
-	-focusable   => 0,
+	      -focusable   => 0,
     );    
 
     # Create a hash with arguments that may be passed to     
@@ -77,7 +77,7 @@ sub new ()
     my %buttonargs = (
         -buttonalignment => 'right',
     );
-    foreach my $arg (qw(-buttons -selected -buttonalignment)) { 
+    foreach my $arg (qw(-buttons -selected -buttonalignment -vertical)) { 
         $buttonargs{$arg} = $this->{$arg} 
             if exists $this->{$arg}; 
     }
@@ -152,15 +152,17 @@ sub layout()
     # new() calls SUPER::new()).
     my $buttons = $this->getobj('buttons');
     my $button_width = 0;
+    my $button_height = 0;
     if (defined $buttons) {
         $button_width = $buttons->compute_buttonwidth;
+        $button_height = $buttons->compute_buttonheight;
     }
 
     # Decide what is the longest line.
     $longest_line = $button_width if $longest_line < $button_width;
 
     # Check if there is enough space to show the widget.
-    if ($avail_textheight < 1 or $avail_textwidth < $longest_line) {
+    if ($avail_textheight < $button_height or $avail_textwidth < $longest_line) {
         $Curses::UI::screen_too_small = 1;
         return $this;
     }
@@ -174,7 +176,7 @@ sub layout()
     $w += $this->{-ipadleft} + $this->{-ipadright}; 
 
     my $h = @lines;
-    $h += 2; # empty line + line of buttons
+    $h += 1 + $button_height; # empty line + number of lines of buttons
     $h += 2; # border of textviewer
     $h += 2 if $this->{-border};
     $h += $this->{-ipadtop} + $this->{-ipadbottom}; 
@@ -275,6 +277,10 @@ contain newline (\n) characters.
 These options sets the buttons that have to be used. For an
 explanation of these options, see the 
 L<Curses::UI::Buttonbox|Curses::UI::Buttonbox> documentation.
+
+=item * B<-vertical> < BOOLEAN >
+
+Option to set vertical buttons added positions instead of default horizontal.
 
 =back
 
